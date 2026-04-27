@@ -308,15 +308,14 @@
     drawPanel(ctx, qImg, 60, 80, 700, 700, "#c8102e", titleQ.textContent, true);
     drawPanel(ctx, nImg, 840, 80, 700, 700, "#1f4e79", titleN.textContent, false);
 
-    cv.toBlob((blob) => {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "pair_" + CURRENT_OID + "_NN" +
-                   (NN_I + 1) + "_" + CURRENT_NN[NN_I][1] + ".png";
-      a.click();
-      URL.revokeObjectURL(a.href);
-      setStatus("PNG downloaded.");
-    }, "image/png");
+    const blob = await new Promise((res) => cv.toBlob(res, "image/png"));
+    const name = "pair_" + CURRENT_OID + "_NN" +
+                 (NN_I + 1) + "_" + CURRENT_NN[NN_I][1] + ".png";
+    const ok = await saveBlob(blob, name, [{
+      description: "PNG image",
+      accept: { "image/png": [".png"] },
+    }]);
+    setStatus(ok ? "PNG saved." : "PNG save cancelled.");
   }
 
   function loadImg(src) {
@@ -365,7 +364,17 @@
     }
     setStatus("Fetching " + (k + 1) + " signature vectors…");
     const ids = [CURRENT_OID].concat(CURRENT_NN.slice(0, k).map((r) => r[1]));
-    const sigs = await Promise.all(ids.map(getSignature));
+    let sigs;
+    try {
+      sigs = await Promise.all(ids.map(getSignature));
+    } catch (err) {
+      const msg = "ERROR fetching signatures: " + err.message +
+                  " (have all sig/*.json files finished uploading?)";
+      console.error(err);
+      setStatus(msg);
+      alert(msg);
+      return;
+    }
     const qsig = sigs[0];
     const layout = []; let cursor = 0;
     [["V_mean", 100, META.params.alpha],
@@ -418,20 +427,54 @@
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)],
                           { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "neighbors_" + CURRENT_OID + "_top" + k + ".json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-    setStatus("JSON downloaded — " + k + " neighbors, " + META.signature_dim +
-              "-d signatures.");
+    const name = "neighbors_" + CURRENT_OID + "_top" + k + ".json";
+    const ok = await saveBlob(blob, name, [{
+      description: "JSON file",
+      accept: { "application/json": [".json"] },
+    }]);
+    setStatus(ok
+      ? "JSON saved — " + k + " neighbors, " + META.signature_dim + "-d signatures."
+      : "JSON save cancelled.");
   }
 
   function getSignature(oid) {
     if (SIG_CACHE.has(oid)) return Promise.resolve(SIG_CACHE.get(oid));
     return fetch(CFG.GCS_BASE + "/sig/" + oid + ".json")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("sig/" + oid + ".json: HTTP " + r.status);
+        return r.json();
+      })
       .then((v) => { SIG_CACHE.set(oid, v); return v; });
+  }
+
+  /* Save a Blob, asking the user where to put it when the browser
+     supports the File System Access API (Chrome/Edge/Opera). Otherwise
+     falls back to a normal anchor-download (file lands in Downloads/). */
+  async function saveBlob(blob, suggestedName, types) {
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName,
+          types,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      } catch (e) {
+        if (e && e.name === "AbortError") return false;
+        console.warn("showSaveFilePicker failed, using fallback:", e);
+        // fall through to anchor-download
+      }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = suggestedName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    return true;
   }
 
   /* ---------- About modal ---------- */
