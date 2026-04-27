@@ -276,6 +276,7 @@
     const oid = resolveId();
     if (!oid) { alert("Pick or type an object id first."); return; }
     idInput.value = oid;
+    syncDropdownTo(oid);
     setStatus("Loading neighbors of " + oid + "…");
     fetch(CFG.GCS_BASE + "/nn/" + oid + ".json")
       .then((r) => {
@@ -301,16 +302,23 @@
       ? FILTERED : OBJECTS).filter((o) => o[4] > 0);
     if (!pool.length) return;
     const o = pool[Math.floor(Math.random() * pool.length)];
-
-    // Page the dropdown so the chosen row is visible, then select it.
-    const fIdx = FILTERED.indexOf(o);
-    if (fIdx >= 0) {
-      PAGE_START = Math.floor(fIdx / PAGE) * PAGE;
-      refreshDropdown();
-    }
     idInput.value = o[0];
-    idSelect.value = o[0];
-    showQuery();
+    showQuery();      // showQuery now syncs the dropdown via syncDropdownTo()
+  }
+
+  /* Page the dropdown to wherever an id lives in the current FILTERED
+     list (if at all) and select it. Used by showQuery and pickRandomQuery
+     so the input + dropdown always agree on the chosen object. */
+  function syncDropdownTo(oid) {
+    if (!FILTERED || !FILTERED.length) { idSelect.value = ""; return; }
+    let fIdx = -1;
+    for (let i = 0; i < FILTERED.length; i++) {
+      if (FILTERED[i][0] === oid) { fIdx = i; break; }
+    }
+    if (fIdx < 0) { idSelect.value = ""; return; }
+    PAGE_START = Math.floor(fIdx / PAGE) * PAGE;
+    refreshDropdown();
+    idSelect.value = oid;
   }
 
   function stepNeighbor(delta) {
