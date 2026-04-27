@@ -25,7 +25,12 @@
       <legend>Filters</legend>
       <div class="filt-row">
         <label>Label:</label>
-        <select id="f-label"><option value="(any)">(any)</option></select>
+        <select id="f-label-general" title="General label (prefix)">
+          <option value="(any)">(any)</option>
+        </select>
+        <select id="f-label-sub" title="Sub-label (specific). (any) keeps all sub-labels under the chosen general label.">
+          <option value="(any)">(any)</option>
+        </select>
 
         <label>Ps min:</label>
         <input id="f-ps-min" type="number" step="0.01" min="0" max="1" value="0.0" />

@@ -16,7 +16,8 @@
   const showBtn   = $("show-btn");
   const randomBtn = $("random-btn");
   const aboutBtn  = $("about-btn");
-  const fLabel    = $("f-label");
+  const fLabelGen = $("f-label-general");
+  const fLabelSub = $("f-label-sub");
   const fPsMin    = $("f-ps-min"); const fPsMax = $("f-ps-max");
   const fPfMin    = $("f-pf-min"); const fPfMax = $("f-pf-max");
   const fResMin   = $("f-res-min"); const fResMax = $("f-res-max");
@@ -52,6 +53,7 @@
   let NN_I          = 0;             // 0..99
   let CIRCLE_ON     = true;
   let SIG_CACHE     = new Map();     // id -> 300-d Float32Array
+  let LABELS_BY_GEN = {};            // "Sc" -> ["Sc1m", "Sc2m", "Sc(d)", ...]
 
   /* ---------- bootstrap ---------- */
   setStatus("Loading metadata…");
@@ -117,15 +119,48 @@
   }
 
   /* ---------- filters / dropdown ---------- */
+  // Extract the "general" label from a full label by taking the leading
+  // run of letters: "Sc2m" → "Sc", "Sc(d)" → "Sc", "Eb" → "Eb".
+  function generalOf(lab) {
+    const m = lab.match(/^[A-Za-z]+/);
+    return m ? m[0] : lab;
+  }
+
   function buildLabelDropdown() {
-    fLabel.innerHTML = "";
-    const opt0 = document.createElement("option");
-    opt0.value = "(any)"; opt0.textContent = "(any)";
-    fLabel.appendChild(opt0);
+    LABELS_BY_GEN = {};
     LABELS.forEach((lab) => {
-      const o = document.createElement("option");
-      o.value = lab; o.textContent = lab; fLabel.appendChild(o);
+      const g = generalOf(lab);
+      (LABELS_BY_GEN[g] = LABELS_BY_GEN[g] || []).push(lab);
     });
+    const generals = Object.keys(LABELS_BY_GEN).sort();
+
+    fLabelGen.innerHTML = "";
+    const o0 = document.createElement("option");
+    o0.value = "(any)"; o0.textContent = "(any)";
+    fLabelGen.appendChild(o0);
+    generals.forEach((g) => {
+      const o = document.createElement("option");
+      o.value = g;
+      const n = LABELS_BY_GEN[g].length;
+      o.textContent = g + (n > 1 ? "  (" + n + ")" : "");
+      fLabelGen.appendChild(o);
+    });
+
+    populateSubDropdown();
+  }
+
+  function populateSubDropdown() {
+    const gen = fLabelGen.value;
+    fLabelSub.innerHTML = "";
+    const o0 = document.createElement("option");
+    o0.value = "(any)"; o0.textContent = "(any)";
+    fLabelSub.appendChild(o0);
+    const subList = (gen === "(any)") ? LABELS : (LABELS_BY_GEN[gen] || []);
+    subList.forEach((s) => {
+      const o = document.createElement("option");
+      o.value = s; o.textContent = s; fLabelSub.appendChild(o);
+    });
+    fLabelSub.value = "(any)";
   }
 
   function fmtRow(o) {
@@ -135,7 +170,8 @@
   }
 
   function applyFilters() {
-    const labFilter = fLabel.value;
+    const genFilter = fLabelGen.value;
+    const subFilter = fLabelSub.value;
     const psMin = parseFloat(fPsMin.value), psMax = parseFloat(fPsMax.value);
     const pfMin = parseFloat(fPfMin.value), pfMax = parseFloat(fPfMax.value);
     const rMin  = parseInt(fResMin.value, 10),  rMax  = parseInt(fResMax.value, 10);
@@ -143,12 +179,18 @@
       alert("Bad filter value. Ps/Pf must be in [0,1]; resolution must be an integer.");
       return;
     }
-    const labIdx = labFilter === "(any)" ? -1 : LABELS.indexOf(labFilter);
+    const subIdx = subFilter === "(any)" ? -1 : LABELS.indexOf(subFilter);
     FILTERED = OBJECTS.filter((o) => {
-      if (labIdx >= 0 && o[1] !== labIdx) return false;
-      if (o[2] < psMin || o[2] > psMax)   return false;
-      if (o[3] < pfMin || o[3] > pfMax)   return false;
-      if (o[4] < rMin  || o[4] > rMax)    return false;
+      // sub-label wins if specified; otherwise fall back to general prefix
+      if (subIdx >= 0) {
+        if (o[1] !== subIdx) return false;
+      } else if (genFilter !== "(any)") {
+        const lab = LABELS[o[1]];
+        if (!lab || generalOf(lab) !== genFilter) return false;
+      }
+      if (o[2] < psMin || o[2] > psMax) return false;
+      if (o[3] < pfMin || o[3] > pfMax) return false;
+      if (o[4] < rMin  || o[4] > rMax)  return false;
       return true;
     });
     PAGE_START = 0;
@@ -156,7 +198,9 @@
   }
 
   function resetFilters() {
-    fLabel.value = "(any)";
+    fLabelGen.value = "(any)";
+    populateSubDropdown();
+    fLabelSub.value = "(any)";
     fPsMin.value = "0.0"; fPsMax.value = "1.0";
     fPfMin.value = "0.0"; fPfMax.value = "1.0";
     fResMin.value = "0";  fResMax.value = "9999";
@@ -480,6 +524,7 @@
   function closeAbout() { aboutOverlay.classList.add("hidden"); }
 
   /* ---------- wiring ---------- */
+  fLabelGen.addEventListener("change", () => populateSubDropdown());
   showBtn.addEventListener("click", showQuery);
   randomBtn.addEventListener("click", pickRandomQuery);
   applyBtn.addEventListener("click", applyFilters);
