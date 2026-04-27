@@ -1,0 +1,10 @@
+# Local data — uploaded to GCS, NOT to GitHub.
+data_to_upload/
+
+# Build logs
+*.log
+
+# Developer-only helpers (kept on the local machine, not shipped in the repo)
+prepare_data.py
+upload.sh
+cors.json
