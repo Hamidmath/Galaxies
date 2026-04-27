@@ -77,9 +77,7 @@
         "The signature is laid out as four 100-d blocks " +
         "[α·V_mean | β·V_dev | γ·avg_ann_mean | η·avg_ann_dev]. In this model β = " +
         fmtNum(m.params.beta) + ", so the V_dev block is identically zero and the " +
-        "effective signature is " + m.signature_dim + "-d. Constant-zero columns " +
-        "add 0 to every pairwise distance, so they do not affect the kNN ranking; " +
-        "exports drop them and ship the " + m.signature_dim + "-d vector."
+        "effective signature is " + m.signature_dim + "-d."
       );
       aboutBody.textContent = desc;
       aboutSub.textContent =
