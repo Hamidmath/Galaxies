@@ -11,7 +11,7 @@
   /* DOM refs */
   const $ = (id) => document.getElementById(id);
   const idInput   = $("id-input");
-  const idList    = $("id-list");
+  const idSelect  = $("id-select");
   const filterCnt = $("filter-count");
   const showBtn   = $("show-btn");
   const randomBtn = $("random-btn");
@@ -208,8 +208,13 @@
   }
 
   function refreshDropdown() {
+    idSelect.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "— pick from list —";
+    idSelect.appendChild(placeholder);
+
     const n = FILTERED.length;
-    idList.innerHTML = "";
     if (n === 0) {
       filterCnt.textContent = "(showing 0 of 0)";
       return;
@@ -217,40 +222,45 @@
     const end = Math.min(PAGE_START + PAGE, n);
     if (PAGE_START > 0) {
       const o = document.createElement("option");
-      o.value = "▲ Previous " + Math.min(PAGE, PAGE_START) +
-                "  (" + PAGE_START + " above)";
-      idList.appendChild(o);
+      o.value = "__prev__";
+      o.textContent = "▲ Previous " + Math.min(PAGE, PAGE_START) +
+                      "  (" + PAGE_START + " above)";
+      idSelect.appendChild(o);
     }
     for (let i = PAGE_START; i < end; i++) {
+      const row = FILTERED[i];
       const o = document.createElement("option");
-      o.value = fmtRow(FILTERED[i]);
-      idList.appendChild(o);
+      o.value = row[0];                  // raw id
+      o.textContent = fmtRow(row);       // pretty label
+      idSelect.appendChild(o);
     }
     if (end < n) {
       const o = document.createElement("option");
-      o.value = "▼ Next " + Math.min(PAGE, n - end) +
-                "  (" + (n - end) + " below)";
-      idList.appendChild(o);
+      o.value = "__next__";
+      o.textContent = "▼ Next " + Math.min(PAGE, n - end) +
+                      "  (" + (n - end) + " below)";
+      idSelect.appendChild(o);
     }
     filterCnt.textContent = (n > PAGE)
       ? "(showing " + (PAGE_START + 1) + "–" + end + " of " + n + ")"
       : "(showing all " + n + ")";
   }
 
-  /* When the user picks something from the datalist, peel id or handle paging */
-  idInput.addEventListener("input", () => {
-    const v = idInput.value;
-    if (v.startsWith("▼ Next")) {
+  /* When the user picks an item in the side dropdown, copy the id into
+     the text input — or, if it's a paging sentinel, advance the page.   */
+  idSelect.addEventListener("change", () => {
+    const v = idSelect.value;
+    if (v === "__next__") {
       const n = FILTERED.length;
       PAGE_START = Math.min(PAGE_START + PAGE, Math.max(0, n - 1));
-      idInput.value = "";
       refreshDropdown();
-    } else if (v.startsWith("▲ Previous")) {
+      idSelect.value = "";
+    } else if (v === "__prev__") {
       PAGE_START = Math.max(0, PAGE_START - PAGE);
-      idInput.value = "";
       refreshDropdown();
-    } else if (v.includes("  ")) {
-      idInput.value = v.split("  ")[0];
+      idSelect.value = "";
+    } else if (v) {
+      idInput.value = v;
     }
   });
 

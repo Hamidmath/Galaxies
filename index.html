@@ -11,9 +11,11 @@
     <!-- Row 1: Query selector -->
     <section class="row row-query">
       <label class="hdr" for="id-input">Query ID</label>
-      <input id="id-input" list="id-list" autocomplete="off" spellcheck="false"
-             placeholder="pick or type an object id…" />
-      <datalist id="id-list"></datalist>
+      <input id="id-input" autocomplete="off" spellcheck="false"
+             placeholder="paste an id, or pick from the list →" />
+      <select id="id-select" size="1">
+        <option value="">— pick from list —</option>
+      </select>
       <span id="filter-count" class="hint"></span>
       <button id="show-btn" class="btn btn-round">Show query</button>
       <button id="random-btn" class="btn btn-soft" title="Pick a random object">🎲 Random</button>
