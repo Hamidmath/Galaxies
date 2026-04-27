@@ -450,10 +450,6 @@
       signature_dim: META.signature_dim,
       signature_layout: layout,
       signature_dropped_blocks: dropped,
-      signature_note:
-        "Zero-coefficient blocks were dropped from the exported vectors. " +
-        "Constant-zero columns add 0 to every pairwise Euclidean distance, " +
-        "so trimming has no effect on the kNN ranking.",
       query_id: CURRENT_OID,
       query_meta: {
         label: LABELS[qm[1]] || "?",
