@@ -1,7 +1,8 @@
-// Public read-only base URL where the data is hosted.
-// (Cloudflare R2 public-development URL; bucket: galaxy-knn-data)
+// Read-only data endpoint. Backed by Cloudflare R2 + a Cloudflare Worker
+// (galaxy-knn-proxy) that gates requests by Origin/Referer so direct
+// scraping from outside this site is blocked.
 window.APP_CONFIG = {
-  GCS_BASE: "https://pub-ff738f4cef1b4cfb805cf8aa5d3e01d5.r2.dev",
+  GCS_BASE: "https://galaxy-knn-proxy.hamidmath2013.workers.dev",
   // Page size for the searchable dropdown.
   PAGE: 5000,
   // Total kNN neighbors precomputed per object.
