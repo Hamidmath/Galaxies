@@ -296,10 +296,20 @@
   }
 
   function pickRandomQuery() {
-    const valid = OBJECTS.filter((o) => o[4] > 0);
-    if (!valid.length) return;
-    const o = valid[Math.floor(Math.random() * valid.length)];
+    // Respect the current filter set so the dropdown can echo the pick.
+    const pool = ((FILTERED && FILTERED.length)
+      ? FILTERED : OBJECTS).filter((o) => o[4] > 0);
+    if (!pool.length) return;
+    const o = pool[Math.floor(Math.random() * pool.length)];
+
+    // Page the dropdown so the chosen row is visible, then select it.
+    const fIdx = FILTERED.indexOf(o);
+    if (fIdx >= 0) {
+      PAGE_START = Math.floor(fIdx / PAGE) * PAGE;
+      refreshDropdown();
+    }
     idInput.value = o[0];
+    idSelect.value = o[0];
     showQuery();
   }
 
