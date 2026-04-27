@@ -35,3 +35,7 @@ Pick any galaxy and step through its 100 nearest neighbors in the
 - Jeff M. Phillips (Advisor) — jeff.m.phillips@utah.edu — https://users.cs.utah.edu/~jeffp/
 
 Kahlert School of Computing, University of Utah.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
