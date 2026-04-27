@@ -12,3 +12,4 @@ cors.json
 # Cloudflare R2 credentials (local-only)
 rclone
 rclone.conf
+regzip_nn.py
