@@ -8,3 +8,7 @@ data_to_upload/
 prepare_data.py
 upload.sh
 cors.json
+
+# Cloudflare R2 credentials (local-only)
+rclone
+rclone.conf
