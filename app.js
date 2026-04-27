@@ -76,7 +76,7 @@
         " signature space.\n\n" +
         "The signature is laid out as four 100-d blocks " +
         "[α·V_mean | β·V_dev | γ·avg_ann_mean | η·avg_ann_dev]. In this model β = " +
-        m.params.beta + ", so the V_dev block is identically zero and the " +
+        fmtNum(m.params.beta) + ", so the V_dev block is identically zero and the " +
         "effective signature is " + m.signature_dim + "-d. Constant-zero columns " +
         "add 0 to every pairwise distance, so they do not affect the kNN ranking; " +
         "exports drop them and ship the " + m.signature_dim + "-d vector."
@@ -97,12 +97,25 @@
 
   function setStatus(msg) { status.textContent = msg; }
 
+  // Pretty-print a float that may be a float32→float64 promotion (e.g.
+  // 0.019999998807907104 → "0.02"). Uses up to 6 significant digits and
+  // trims trailing zeros.
+  function fmtNum(x) {
+    if (x === null || x === undefined || Number.isNaN(x)) return "?";
+    const n = Number(x);
+    if (n === 0) return "0";
+    if (!Number.isFinite(n)) return String(n);
+    const s = n.toPrecision(6);
+    return Number.parseFloat(s).toString();
+  }
+
   function updateSetupLine() {
     const p = META.params;
     setupLine.textContent =
       META.model + "  |  sig dim = " + META.signature_full_dim +
-      " (effective " + META.signature_dim + ")  |  α=" + p.alpha +
-      "  β=" + p.beta + "  γ=" + p.gamma + "  η=" + p.eta + "  W=" + p.W;
+      " (effective " + META.signature_dim + ")  |  α=" + fmtNum(p.alpha) +
+      "  β=" + fmtNum(p.beta) + "  γ=" + fmtNum(p.gamma) +
+      "  η=" + fmtNum(p.eta) + "  W=" + fmtNum(p.W);
   }
 
   /* ---------- filters / dropdown ---------- */
@@ -372,9 +385,16 @@
       .map(([nm], i) => ({ name: nm, coef: 0.0 }));
 
     const qm = OBJECTS[ID_TO_IDX.get(CURRENT_OID)];
+    const cleanParams = {
+      alpha: Number(fmtNum(META.params.alpha)),
+      beta:  Number(fmtNum(META.params.beta)),
+      gamma: Number(fmtNum(META.params.gamma)),
+      eta:   Number(fmtNum(META.params.eta)),
+      W:     Number(fmtNum(META.params.W)),
+    };
     const payload = {
       model: META.model,
-      params: META.params,
+      params: cleanParams,
       signature_full_dim: META.signature_full_dim,
       signature_dim: META.signature_dim,
       signature_layout: layout,
