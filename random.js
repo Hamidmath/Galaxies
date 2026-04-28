@@ -36,6 +36,7 @@
       OBJECTS = m.objects;
       LABELS  = m.labels;
       buildLabelDropdown();
+      readUrlFilters();
       statusText.textContent = m.n.toLocaleString() + " objects available";
       applyFilters();
     })
@@ -79,6 +80,31 @@
     o.value = value;
     o.textContent = text;
     return o;
+  }
+
+  /* Read filter state from the URL (set by the main app when opening
+     this tab). Anything not in the URL keeps its default. */
+  function readUrlFilters() {
+    const p = new URLSearchParams(location.search);
+    if (p.has("gen")) {
+      const v = p.get("gen");
+      if ([...fLabelGen.options].some((o) => o.value === v)) {
+        fLabelGen.value = v;
+        populateSubDropdown();
+      }
+    }
+    if (p.has("sub")) {
+      const v = p.get("sub");
+      if ([...fLabelSub.options].some((o) => o.value === v)) {
+        fLabelSub.value = v;
+      }
+    }
+    if (p.has("psmin"))  fPsMin.value  = p.get("psmin");
+    if (p.has("psmax"))  fPsMax.value  = p.get("psmax");
+    if (p.has("pfmin"))  fPfMin.value  = p.get("pfmin");
+    if (p.has("pfmax"))  fPfMax.value  = p.get("pfmax");
+    if (p.has("resmin")) fResMin.value = p.get("resmin");
+    if (p.has("resmax")) fResMax.value = p.get("resmax");
   }
 
   /* ---- filtering ---- */

@@ -414,7 +414,19 @@
   }
 
   function openRandomTab() {
-    window.open("random.html", "_blank");
+    // Pass the main app's current filter state to the random tab via
+    // URL parameters so it opens with the same filters applied.
+    const p = new URLSearchParams();
+    if (fLabelGen.value !== "(any)") p.set("gen",   fLabelGen.value);
+    if (fLabelSub.value !== "(any)") p.set("sub",   fLabelSub.value);
+    if (fPsMin.value     !== "0.0")  p.set("psmin", fPsMin.value);
+    if (fPsMax.value     !== "1.0")  p.set("psmax", fPsMax.value);
+    if (fPfMin.value     !== "0.0")  p.set("pfmin", fPfMin.value);
+    if (fPfMax.value     !== "1.0")  p.set("pfmax", fPfMax.value);
+    if (fResMin.value    !== "0")    p.set("resmin", fResMin.value);
+    if (fResMax.value    !== "9999") p.set("resmax", fResMax.value);
+    const qs = p.toString();
+    window.open("random.html" + (qs ? "?" + qs : ""), "_blank");
   }
 
   function toggleCircle() {
