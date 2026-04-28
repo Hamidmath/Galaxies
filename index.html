@@ -77,6 +77,8 @@
       <span class="grow"></span>
       <button id="circle-btn" class="btn btn-soft">Circle: ON</button>
       <button id="savepng-btn" class="btn btn-soft">Save PNG ...</button>
+      <button id="show-all-nn-btn" class="btn btn-soft">Show all 100 NN ▼</button>
+      <button id="random-tab-btn" class="btn btn-soft" title="Open 100 random galaxies in a new tab">100 random ↗</button>
     </section>
 
     <!-- Image panels -->
@@ -99,6 +101,12 @@
           </svg>
         </div>
       </div>
+    </section>
+
+    <!-- Expandable 100-NN grid (hidden by default) -->
+    <section id="grid-section" class="grid-section hidden">
+      <h3 id="grid-title">100 nearest neighbors</h3>
+      <div id="grid-100" class="grid-100"></div>
     </section>
 
     <!-- Footer -->

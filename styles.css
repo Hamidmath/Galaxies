@@ -93,6 +93,57 @@ input, select {
                                stroke-width: 1.4; vector-effect: non-scaling-stroke; }
 body.no-circle .panel .frame .circle { display: none; }
 
+/* 100-cell grid (used both for "Show all 100 NN" and the random tab) */
+.grid-section {
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  background: white;
+}
+.grid-section.hidden { display: none; }
+.grid-section h3 {
+  margin: 0 0 10px;
+  color: var(--accent);
+}
+.grid-100 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.grid-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  min-width: 0;
+  text-align: center;
+}
+.grid-cell img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: white;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+.grid-cell img:hover { filter: brightness(1.05); border-color: var(--primary); }
+.grid-cell .meta {
+  font-size: 11px;
+  margin-top: 4px;
+  line-height: 1.35;
+  color: var(--fg);
+  word-break: break-all;
+}
+.grid-cell .rank {
+  font-weight: bold;
+  color: var(--accent);
+  font-size: 12px;
+}
+
 /* Footer */
 .footer { padding: 6px 14px 4px; }
 .footer hr { margin: 0 0 6px; }

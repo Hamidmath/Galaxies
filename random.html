@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>100 Random Galaxies — Galaxy kNN Browser</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="root">
+    <section class="row row-query">
+      <span class="hdr">100 random galaxies</span>
+      <span id="status-text" class="hint">Loading metadata…</span>
+      <span class="grow"></span>
+      <button id="refresh-btn" class="btn btn-round">🎲 Refresh</button>
+      <a class="btn btn-soft" href="./" target="_self"
+         style="text-decoration:none;display:inline-block">← Back to browser</a>
+    </section>
+
+    <section class="grid-section">
+      <div id="grid-100" class="grid-100"></div>
+    </section>
+
+    <footer class="footer">
+      <hr />
+      <div class="footer-line">
+        <span class="school">Kahlert School of Computing  ·  University of Utah</span>
+        <span class="people">
+          <a href="https://hamidmath.github.io/" target="_blank" rel="noopener">Hamid Shafieasl</a>
+          <span class="dot">  ·  </span>
+          <span class="hint">Advisor:</span>
+          <a href="https://users.cs.utah.edu/~jeffp/" target="_blank" rel="noopener">Jeff M. Phillips</a>
+        </span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="random.js"></script>
+</body>
+</html>

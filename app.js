@@ -30,6 +30,11 @@
   const exportBtn = $("export-btn");
   const circleBtn = $("circle-btn");
   const savePngBtn= $("savepng-btn");
+  const showAllNNBtn = $("show-all-nn-btn");
+  const randomTabBtn = $("random-tab-btn");
+  const gridSection  = $("grid-section");
+  const gridTitle    = $("grid-title");
+  const grid100      = $("grid-100");
   const setupLine = $("setup-line");
   const titleQ    = $("title-q");
   const titleN    = $("title-n");
@@ -87,7 +92,15 @@
         " (effective " + m.signature_dim + ")  ·  top-" + NMAX +
         " kNN over " + m.n.toLocaleString() + " galaxies";
       setStatus("Ready. " + m.n.toLocaleString() + " objects loaded.");
-      pickRandomQuery();
+      // If ?q=<id> was passed in the URL (e.g. from the random tab), open
+      // that as the query; otherwise pick random.
+      const qParam = new URLSearchParams(location.search).get("q");
+      if (qParam && ID_TO_IDX.has(qParam)) {
+        idInput.value = qParam;
+        showQuery();
+      } else {
+        pickRandomQuery();
+      }
     })
     .catch((err) => {
       console.error(err);
@@ -288,6 +301,8 @@
         CURRENT_NN  = nn;       // [[rank, id, dist, lab_idx, ps, pf, res], ...]
         NN_I = 0;
         renderPair();
+        // If the 100-NN grid is open, refresh it for the new query
+        if (!gridSection.classList.contains("hidden")) renderAllNN();
         const o = OBJECTS[ID_TO_IDX.get(oid)];
         const lab = LABELS[o[1]] || "?";
         setStatus("Query: " + oid + "  (" + lab + ", Ps=" + o[2].toFixed(2) +
@@ -347,6 +362,58 @@
       "\nd=" + r[2].toFixed(4);
     imgN.src = CFG.GCS_BASE + "/images/" + nid + ".png";
     nnIndex.textContent = "NN" + (NN_I + 1) + " / " + NMAX;
+  }
+
+  /* ---------- expandable 100-NN grid ---------- */
+  function toggleAllNN() {
+    if (!CURRENT_NN) {
+      alert("Pick a query first.");
+      return;
+    }
+    if (gridSection.classList.contains("hidden")) {
+      renderAllNN();
+      gridSection.classList.remove("hidden");
+      showAllNNBtn.textContent = "Hide 100 NN ▲";
+      gridSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      gridSection.classList.add("hidden");
+      showAllNNBtn.textContent = "Show all 100 NN ▼";
+    }
+  }
+
+  function renderAllNN() {
+    if (!CURRENT_NN) return;
+    gridTitle.textContent = "100 nearest neighbors of " + CURRENT_OID;
+    grid100.innerHTML = "";
+    CURRENT_NN.forEach((r) => {
+      const cell = document.createElement("div");
+      cell.className = "grid-cell";
+      const lab = LABELS[r[3]] || "?";
+      const img = document.createElement("img");
+      img.src = CFG.GCS_BASE + "/images/" + r[1] + ".png";
+      img.alt = r[1];
+      img.crossOrigin = "anonymous";
+      img.title = "Click to make this the new query";
+      img.addEventListener("click", () => {
+        idInput.value = r[1];
+        showQuery();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.innerHTML =
+        '<div class="rank">NN' + r[0] + '</div>' +
+        "<div>" + r[1] + "</div>" +
+        "<div>" + lab + "</div>" +
+        "<div>d=" + r[2].toFixed(4) + "</div>";
+      cell.appendChild(img);
+      cell.appendChild(meta);
+      grid100.appendChild(cell);
+    });
+  }
+
+  function openRandomTab() {
+    window.open("random.html", "_blank");
   }
 
   function toggleCircle() {
@@ -558,6 +625,8 @@
   circleBtn.addEventListener("click", toggleCircle);
   savePngBtn.addEventListener("click", saveCurrentPng);
   exportBtn.addEventListener("click", exportNeighbors);
+  showAllNNBtn.addEventListener("click", toggleAllNN);
+  randomTabBtn.addEventListener("click", openRandomTab);
   aboutBtn.addEventListener("click", openAbout);
   aboutClose.addEventListener("click", closeAbout);
   aboutOverlay.addEventListener("click", (e) => {
