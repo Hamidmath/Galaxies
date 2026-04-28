@@ -68,6 +68,14 @@ input, select {
 
 /* Image bar */
 .imgbar { padding-top: 4px; padding-bottom: 0; }
+.setup-hint {
+  margin: 0 14px 4px;
+  color: var(--hint);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.4;
+}
+.setup-hint a { color: var(--link); text-decoration: underline; }
 
 /* Two image panels — fixed widths so the gap never shifts */
 .panels { display: flex; gap: 16px; padding: 10px 14px; flex: 1;
