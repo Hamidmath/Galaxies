@@ -17,6 +17,42 @@
          style="text-decoration:none;display:inline-block">← Back to browser</a>
     </section>
 
+    <fieldset class="row filters">
+      <legend>Filters</legend>
+      <div class="filt-row">
+        <label>Label:</label>
+        <select id="f-label-general" title="General label (prefix)">
+          <option value="(any)">(any)</option>
+        </select>
+        <select id="f-label-sub" title="Sub-label (specific). (any) keeps all sub-labels under the chosen general label.">
+          <option value="(any)">(any)</option>
+        </select>
+
+        <label>Ps min:</label>
+        <input id="f-ps-min" type="number" step="0.01" min="0" max="1" value="0.0" />
+        <label>max:</label>
+        <input id="f-ps-max" type="number" step="0.01" min="0" max="1" value="1.0" />
+
+        <label>Pf min:</label>
+        <input id="f-pf-min" type="number" step="0.01" min="0" max="1" value="0.0" />
+        <label>max:</label>
+        <input id="f-pf-max" type="number" step="0.01" min="0" max="1" value="1.0" />
+      </div>
+      <div class="filt-row">
+        <label>Res min (px):</label>
+        <input id="f-res-min" type="number" step="1" min="0" value="0" />
+        <label>max:</label>
+        <input id="f-res-max" type="number" step="1" min="0" value="9999" />
+        <button id="apply-btn" class="btn btn-round">Apply</button>
+        <button id="reset-btn" class="btn btn-soft">Reset</button>
+        <span id="filter-count" class="hint"></span>
+      </div>
+      <p class="filt-hint">
+        These filters narrow the random pool. Refresh re-samples 100 galaxies
+        from whatever subset the filters define.
+      </p>
+    </fieldset>
+
     <section class="grid-section">
       <div id="grid-100" class="grid-100"></div>
     </section>

@@ -1,15 +1,31 @@
-/* Random-100 page — independent of the main app. Loads meta.json once,
-   then samples 100 random object ids each time the user clicks Refresh. */
+/* Random-100 page. Loads meta.json once, builds the filter UI, then
+   samples 100 random object ids from whatever subset the filters define
+   each time the user clicks Refresh. */
 (function () {
   "use strict";
   const CFG = window.APP_CONFIG;
+  const $   = (id) => document.getElementById(id);
 
-  const grid       = document.getElementById("grid-100");
-  const statusText = document.getElementById("status-text");
-  const refreshBtn = document.getElementById("refresh-btn");
+  const grid       = $("grid-100");
+  const statusText = $("status-text");
+  const refreshBtn = $("refresh-btn");
 
-  let OBJECTS = [];
-  let LABELS  = [];
+  const fLabelGen  = $("f-label-general");
+  const fLabelSub  = $("f-label-sub");
+  const fPsMin     = $("f-ps-min");
+  const fPsMax     = $("f-ps-max");
+  const fPfMin     = $("f-pf-min");
+  const fPfMax     = $("f-pf-max");
+  const fResMin    = $("f-res-min");
+  const fResMax    = $("f-res-max");
+  const applyBtn   = $("apply-btn");
+  const resetBtn   = $("reset-btn");
+  const filterCnt  = $("filter-count");
+
+  let OBJECTS         = [];
+  let LABELS          = [];
+  let LABELS_BY_GEN   = {};
+  let FILTERED        = [];
 
   fetch(CFG.GCS_BASE + "/meta.json")
     .then((r) => {
@@ -19,17 +35,100 @@
     .then((m) => {
       OBJECTS = m.objects;
       LABELS  = m.labels;
-      statusText.textContent =
-        m.n.toLocaleString() + " objects available";
-      shuffle();
+      buildLabelDropdown();
+      statusText.textContent = m.n.toLocaleString() + " objects available";
+      applyFilters();
     })
     .catch((e) => {
       statusText.textContent = "ERROR loading meta: " + e.message;
     });
 
+  /* ---- label dropdowns (general + sub) ---- */
+  function generalOf(lab) {
+    const m = lab.match(/^[A-Za-z]+/);
+    return m ? m[0] : lab;
+  }
+
+  function buildLabelDropdown() {
+    LABELS_BY_GEN = {};
+    LABELS.forEach((lab) => {
+      const g = generalOf(lab);
+      (LABELS_BY_GEN[g] = LABELS_BY_GEN[g] || []).push(lab);
+    });
+    const generals = Object.keys(LABELS_BY_GEN).sort();
+    fLabelGen.innerHTML = "";
+    fLabelGen.appendChild(makeOpt("(any)", "(any)"));
+    generals.forEach((g) => {
+      const n = LABELS_BY_GEN[g].length;
+      fLabelGen.appendChild(makeOpt(g, g + (n > 1 ? "  (" + n + ")" : "")));
+    });
+    populateSubDropdown();
+  }
+
+  function populateSubDropdown() {
+    const gen = fLabelGen.value;
+    fLabelSub.innerHTML = "";
+    fLabelSub.appendChild(makeOpt("(any)", "(any)"));
+    const subList = (gen === "(any)") ? LABELS : (LABELS_BY_GEN[gen] || []);
+    subList.forEach((s) => fLabelSub.appendChild(makeOpt(s, s)));
+    fLabelSub.value = "(any)";
+  }
+
+  function makeOpt(value, text) {
+    const o = document.createElement("option");
+    o.value = value;
+    o.textContent = text;
+    return o;
+  }
+
+  /* ---- filtering ---- */
+  function applyFilters() {
+    const psMin = parseFloat(fPsMin.value), psMax = parseFloat(fPsMax.value);
+    const pfMin = parseFloat(fPfMin.value), pfMax = parseFloat(fPfMax.value);
+    const rMin  = parseInt(fResMin.value, 10),  rMax  = parseInt(fResMax.value, 10);
+    if ([psMin, psMax, pfMin, pfMax].some(isNaN) || isNaN(rMin) || isNaN(rMax)) {
+      alert("Bad filter value. Ps/Pf must be in [0,1]; resolution must be an integer.");
+      return;
+    }
+    const genFilter = fLabelGen.value;
+    const subFilter = fLabelSub.value;
+    const subIdx    = subFilter === "(any)" ? -1 : LABELS.indexOf(subFilter);
+
+    FILTERED = OBJECTS.filter((o) => {
+      if (subIdx >= 0) {
+        if (o[1] !== subIdx) return false;
+      } else if (genFilter !== "(any)") {
+        const lab = LABELS[o[1]];
+        if (!lab || generalOf(lab) !== genFilter) return false;
+      }
+      if (o[2] < psMin || o[2] > psMax) return false;
+      if (o[3] < pfMin || o[3] > pfMax) return false;
+      if (o[4] < rMin  || o[4] > rMax)  return false;
+      return true;
+    });
+    filterCnt.textContent = "(" + FILTERED.length.toLocaleString() +
+                            " match the filters)";
+    shuffle();
+  }
+
+  function resetFilters() {
+    fLabelGen.value = "(any)";
+    populateSubDropdown();
+    fLabelSub.value = "(any)";
+    fPsMin.value = "0.0"; fPsMax.value = "1.0";
+    fPfMin.value = "0.0"; fPfMax.value = "1.0";
+    fResMin.value = "0";  fResMax.value = "9999";
+    applyFilters();
+  }
+
+  /* ---- sampling + rendering ---- */
   function shuffle() {
-    const valid = OBJECTS.filter((o) => o[4] > 0);
-    if (!valid.length) return;
+    const valid = FILTERED.filter((o) => o[4] > 0);
+    grid.innerHTML = "";
+    if (!valid.length) {
+      statusText.textContent = "No galaxies match the current filters";
+      return;
+    }
     const seen = new Set();
     const picks = [];
     while (picks.length < 100 && seen.size < valid.length) {
@@ -39,7 +138,6 @@
       picks.push(valid[i]);
     }
 
-    grid.innerHTML = "";
     picks.forEach((o, k) => {
       const cell = document.createElement("div");
       cell.className = "grid-cell";
@@ -50,7 +148,6 @@
       img.crossOrigin = "anonymous";
       img.title = "Click to query this galaxy in the main browser";
       img.addEventListener("click", () => {
-        // Opens the main browser focused on this object id.
         window.open("./?q=" + encodeURIComponent(o[0]), "_blank");
       });
 
@@ -68,9 +165,14 @@
       cell.appendChild(meta);
       grid.appendChild(cell);
     });
-    statusText.textContent = "Showing 100 random galaxies (out of " +
-                             OBJECTS.length.toLocaleString() + ")";
+    statusText.textContent =
+      "Showing " + picks.length + " random galaxies (out of " +
+      valid.length.toLocaleString() + " matching the filters)";
   }
 
+  /* ---- wiring ---- */
+  fLabelGen.addEventListener("change", () => populateSubDropdown());
+  applyBtn.addEventListener("click", applyFilters);
+  resetBtn.addEventListener("click", resetFilters);
   refreshBtn.addEventListener("click", shuffle);
 })();
