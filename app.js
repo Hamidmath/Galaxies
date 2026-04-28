@@ -416,17 +416,18 @@
   function openRandomTab() {
     // Pass the main app's current filter state to the random tab via
     // URL parameters so it opens with the same filters applied.
-    const p = new URLSearchParams();
-    if (fLabelGen.value !== "(any)") p.set("gen",   fLabelGen.value);
-    if (fLabelSub.value !== "(any)") p.set("sub",   fLabelSub.value);
-    if (fPsMin.value     !== "0.0")  p.set("psmin", fPsMin.value);
-    if (fPsMax.value     !== "1.0")  p.set("psmax", fPsMax.value);
-    if (fPfMin.value     !== "0.0")  p.set("pfmin", fPfMin.value);
-    if (fPfMax.value     !== "1.0")  p.set("pfmax", fPfMax.value);
-    if (fResMin.value    !== "0")    p.set("resmin", fResMin.value);
-    if (fResMax.value    !== "9999") p.set("resmax", fResMax.value);
-    const qs = p.toString();
-    window.open("random.html" + (qs ? "?" + qs : ""), "_blank");
+    // Always include all 8 fields — let the random tab parse them.
+    const p = new URLSearchParams({
+      gen:    fLabelGen.value,
+      sub:    fLabelSub.value,
+      psmin:  fPsMin.value,
+      psmax:  fPsMax.value,
+      pfmin:  fPfMin.value,
+      pfmax:  fPfMax.value,
+      resmin: fResMin.value,
+      resmax: fResMax.value,
+    });
+    window.open("random.html?" + p.toString(), "_blank");
   }
 
   function toggleCircle() {
