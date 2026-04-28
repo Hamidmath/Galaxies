@@ -106,8 +106,8 @@ body.no-circle .panel .frame .circle { display: none; }
 }
 .grid-100 {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
 }
 .grid-cell {
   display: flex;
@@ -132,16 +132,16 @@ body.no-circle .panel .frame .circle { display: none; }
 }
 .grid-cell img:hover { filter: brightness(1.05); border-color: var(--primary); }
 .grid-cell .meta {
-  font-size: 11px;
-  margin-top: 4px;
-  line-height: 1.35;
+  font-size: 12px;
+  margin-top: 6px;
+  line-height: 1.4;
   color: var(--fg);
   word-break: break-all;
 }
 .grid-cell .rank {
   font-weight: bold;
   color: var(--accent);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 /* Footer */

@@ -393,10 +393,11 @@
       img.src = CFG.GCS_BASE + "/images/" + r[1] + ".png";
       img.alt = r[1];
       img.crossOrigin = "anonymous";
-      img.title = "Click to make this the new query";
+      img.title = "Click to view this neighbor next to the query (above)";
       img.addEventListener("click", () => {
-        idInput.value = r[1];
-        showQuery();
+        // Keep the current query; just jump the right-panel to this NN.
+        NN_I = r[0] - 1;             // r[0] is 1-indexed rank
+        renderPair();
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
       const meta = document.createElement("div");
